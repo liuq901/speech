@@ -68,6 +68,15 @@ def plot(data, color):
     data = data.T
     plt.plot(data[0], data[1], color + 'o')
 
+def evaluate(data, mixture_number, c, mu, sigma):
+    res = 0
+    for x in data:
+        tot = 0
+        for i in xrange(mixture_number):
+            tot += gaussian(x, c[i], mu[i], sigma[i])
+        res += np.log(tot)
+    return res
+
 mixture_number = 4
 label_cnt = 2
 iterations = 10
@@ -75,6 +84,9 @@ color = ['r', 'b']
 
 train_data, train_label = read_data('train.txt')
 dev_data, dev_label = read_data('dev.txt')
+for i in xrange(label_cnt):
+    plot(train_data[train_label == i + 1], color[i])
+plt.savefig('result/train.jpg')
 
 c = [None] * label_cnt
 mu = [None] * label_cnt
@@ -87,8 +99,28 @@ for i in xrange(label_cnt):
         mu[i][m] = np.array(random(m))
         sigma[i][m] = np.eye(2)
 
+likelihood = [0.0] * iterations
+predict = [None] * iterations
 for _ in xrange(iterations):
-    for i in xrange(0, label_cnt):
+    for i in xrange(label_cnt):
         c[i], mu[i], sigma[i] = train(train_data[train_label == i + 1], mixture_number, c[i], mu[i], sigma[i])
+        likelihood[_] += evaluate(train_data[train_label == i + 1], mixture_number, c[i], mu[i], sigma[i])
     predict_label = argmax(dev_data, c, mu, sigma, mixture_number, label_cnt)
-    print _, sum(predict_label == dev_label)
+    predict[_] = sum(predict_label == dev_label)
+plt.clf()
+plt.plot(np.arange(iterations), likelihood, 'bo-')
+plt.savefig('result/likelihood.jpg')
+plt.clf()
+plt.plot(np.arange(iterations), predict, 'ro-')
+plt.savefig('result/predict.jpg')
+
+test_data = read_data('test.txt', False)
+predict_label = argmax(test_data, c, mu, sigma, mixture_number, label_cnt)
+plt.clf()
+for i in xrange(label_cnt):
+    plot(test_data[predict_label == i + 1], color[i])
+plt.savefig('result/test.jpg')
+res_file = open('result/result.txt', 'w')
+for i in xrange(len(test_data)):
+    res_file.write(str(test_data[i][0]) + ' ' + str(test_data[i][1]) + ' ' + str(predict_label[i]) + '\n')
+res_file.close()
