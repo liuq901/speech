@@ -108,10 +108,10 @@ for _ in xrange(iterations):
     predict_label = argmax(dev_data, c, mu, sigma, mixture_number, label_cnt)
     predict[_] = sum(predict_label == dev_label)
 plt.clf()
-plt.plot(np.arange(iterations), likelihood, 'bo-')
+plt.plot(np.arange(1, iterations + 1), likelihood, 'bo-')
 plt.savefig('result/likelihood.jpg')
 plt.clf()
-plt.plot(np.arange(iterations), predict, 'ro-')
+plt.plot(np.arange(1, iterations + 1), predict, 'ro-')
 plt.savefig('result/predict.jpg')
 
 test_data = read_data('test.txt', False)
